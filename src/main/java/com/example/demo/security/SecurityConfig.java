@@ -34,36 +34,34 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Value("${jwt.public.key}")
-    RSAPublicKey publicKey;
+    private RSAPublicKey publicKey;
 
     @Value("${jwt.private.key}")
-    RSAPrivateKey privateKey;
+    private RSAPrivateKey privateKey;
 
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-        .authorizeHttpRequests((auth) -> auth.requestMatchers("/products").permitAll()
-            .requestMatchers("/products/**").hasRole("admin")
-            .requestMatchers("/products/**").hasRole("admin")
-            .requestMatchers("/products/**").hasRole("admin")
-            .anyRequest().authenticated()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/products").permitAll()
+                .requestMatchers("/products/**").hasRole("admin")
+                .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults())
-            .csrf((csrf) -> csrf.ignoringRequestMatchers("/token"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/token"))
             .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-            .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling((exceptions) -> exceptions
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
             );
-        
-            return http.build();
+
+        return http.build();
     }
 
-
+    
     @Bean
-    UserDetailsService users()
-    {
+    public UserDetailsService users() {
         return new InMemoryUserDetailsManager(
             User.withUsername("griffith").password("{noop}password").roles("user").build(),
             User.withUsername("macdonald").password("{noop}password").roles("admin").build()
@@ -73,13 +71,13 @@ public class SecurityConfig {
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
-        }
+    }
 
     @Bean
     public JwtEncoder jwtEncoder() {
-        JWK jwk= new RSAKey.Builder(this.publicKey).privateKey(this.privateKey).build();
+        JWK jwk = new RSAKey.Builder(this.publicKey).privateKey(this.privateKey).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
-        }
+    }
 
 }

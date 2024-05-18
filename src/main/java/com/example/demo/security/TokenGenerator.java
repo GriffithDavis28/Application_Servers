@@ -1,7 +1,7 @@
 package com.example.demo.security;
 
 import java.time.Instant;
-import java.util.stream.Collector;
+
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class TokenGenerator {
                        .map(GrantedAuthority::getAuthority)
                        .collect(Collectors.joining(" "));
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                       .issuer("slef")
+                       .issuer("self")
                        .issuedAt(now)
                        .expiresAt(now.plusSeconds(expiry))
                        .claim("scope", scope)
